@@ -54,6 +54,12 @@ def booking():
 @app.route("/thankyou")
 def thankyou():
 	return render_template("thankyou.html")
+@app.route("/signin")
+def signin():
+	return render_template("signin.html")
+@app.route("/signup")
+def signup():
+	return render_template("signup.html")
 
 @app.route("/api/attractions", methods=["GET"])
 def attraction_qurey():
@@ -73,6 +79,7 @@ def attraction_qurey():
 				cursor.execute("SELECT * FROM `location` LIMIT 0,12")
 				response=get_data(cursor,n)
 				response=make_response(response,200)
+				response.headers["access-control-allow-origin"]="*"
 				return response
 			else:
 				if int(page)<total_page:
@@ -80,12 +87,14 @@ def attraction_qurey():
 					cursor.execute("SELECT * FROM `location` LIMIT %s,12",[n*12])
 					response=get_data(cursor,n)
 					response=make_response(response,200)
+					response.headers["access-control-allow-origin"]="*"
 					return response
 				elif int(page)==total_page:
 					n=int(page)
 					cursor.execute("SELECT * FROM `location` LIMIT %s,%s",[n*12,left])
 					response=get_data(cursor,None)
 					response=make_response(response,200)
+					response.headers["access-control-allow-origin"]="*"
 					return response
 				else:
 					response={
@@ -93,6 +102,7 @@ def attraction_qurey():
 						"message":"out of range"
 					}
 					response=make_response(jsonify(response),500)
+					response.headers["access-control-allow-origin"]="*"
 					return response
 		else:
 			cursor.execute("SELECT COUNT(*) FROM `location` WHERE `name` like %s",["%"+keyword+"%"])
@@ -107,18 +117,21 @@ def attraction_qurey():
 					cursor.execute("SELECT * FROM `location`WHERE `name` like %s LIMIT 0,12",["%"+keyword+"%"])
 					response=get_data(cursor,n)
 					response=make_response(response,200)
+					response.headers["access-control-allow-origin"]="*"
 					return response
 				elif 0<int(page)<total_page:
 					n=int(page)
 					cursor.execute("SELECT * FROM `location`WHERE `name` like %s LIMIT %s,12",["%"+keyword+"%",n*12])
 					response=get_data(cursor,n)
 					response=make_response(response,200)
+					response.headers["access-control-allow-origin"]="*"
 					return response
 				elif int(page)==total_page:
 					n=int(page)
 					cursor.execute("SELECT * FROM `location` WHERE `name` like %s LIMIT %s,%s",["%"+keyword+"%",n*12,left])
 					response=get_data(cursor,None)
 					response=make_response(response,200)
+					response.headers["access-control-allow-origin"]="*"
 					return response
 				else:
 					response={
@@ -126,6 +139,7 @@ def attraction_qurey():
 						"message":"out of range"
 					}
 					response=make_response(jsonify(response),500)
+					response.headers["access-control-allow-origin"]="*"
 					return response
 			elif 0<count<=12:
 				if page=="" or page=="0":
@@ -133,6 +147,7 @@ def attraction_qurey():
 					cursor.execute("SELECT * FROM `location`WHERE `name` like %s LIMIT 0,%s",["%"+keyword+"%",left])
 					response=get_data(cursor,n)
 					response=make_response(response,200)
+					response.headers["access-control-allow-origin"]="*"
 					return response
 				else:
 					response={
@@ -140,6 +155,7 @@ def attraction_qurey():
 						"message":"out of range"
 					}
 					response=make_response(jsonify(response),500)
+					response.headers["access-control-allow-origin"]="*"
 					return response
 			else:
 				response={
@@ -147,6 +163,7 @@ def attraction_qurey():
 						"message":"out of range"
 					}
 				response=make_response(jsonify(response),500)
+				response.headers["access-control-allow-origin"]="*"
 				return response
 	except:
 		connection.rollback()
@@ -155,6 +172,7 @@ def attraction_qurey():
 				"message":"error"
 			}
 		response=make_response(jsonify(response),500)
+		response.headers["access-control-allow-origin"]="*"
 		return response
 	finally:
 		if connection.is_connected():
@@ -185,6 +203,7 @@ def id_query(attractionId):
 					content[row]=data[idx]
 			response["data"]=content
 			response=make_response(jsonify(response),200)
+			response.headers["access-control-allow-origin"]="*"
 			return response
 		else:
 			response={
@@ -192,6 +211,7 @@ def id_query(attractionId):
 					"message":"out of range"
 				}
 			response=make_response(jsonify(response),400)
+			response.headers["access-control-allow-origin"]="*"
 			return response
 	except:
 		connection.rollback()
@@ -200,6 +220,7 @@ def id_query(attractionId):
 				"message":"error"
 			}
 		response=make_response(jsonify(response),500)
+		response.headers["access-control-allow-origin"]="*"
 		return response
 	finally:
 		if connection.is_connected():
@@ -208,4 +229,4 @@ def id_query(attractionId):
 			print("connection is closed")
 
 if __name__=="__main__":
-    app.run(host='0.0.0.0',port=3000)
+    app.run(port=3000,debug=True)
