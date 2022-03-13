@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="utf-8" />
+        <title>台北一日遊</title>
+        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='index.css')}}" media="all"/>
+    </head>
+    <body>
+        <div style="background-color:#FFFFFF;position:sticky;top:0px;">
+            <div class="header-container">
+                <div style="font-size:30px;font-weight:bold;margin:10px;height:34px;color:#448899;grid-column:1/2" onclick="window.history.go(0);">台北一日遊</div>
+                <div style="font-size:16px;margin-top:10px;margin-bottom:10px;height:14px;padding:10px;grid-column:3/4">預定行程</div>
+                <div style="font-size:16px;margin-top:10px;margin-bottom:10px;height:14px;padding:10px;grid-column:4/5">登入/註冊</div>
+            </div>
+        </div>
+        <div style="background-image:linear-gradient(135deg,#AADDEE 0%,#66AABB 100%);">
+            <div class="cover">
+                <div class="welcome">
+                    <div class="item1">輕鬆享受台北一日悠閒</div>
+                    <div class="item2">探索每個角落，體驗城市的深度旅遊行程</div>
+                    <input type="text" placeholder="輸入景點名稱查詢" id="item3"/>
+                    <div class="item4"><img id="icon_search" style="position:relative;top:8px;left:15px;width:30px;height:30px;" src="{{url_for('static', filename='icon_search.png')}}"/></div>
+                </div>
+            </div>
+        </div>
+        <div id="container"></div>
+        <div id="end">COPYRIGHT © 2021 台北一日遊</div>
+        <script>
+            let nextPage=0;
+            let container=document.getElementById("container");
+            // 載入內容
+            function load(){
+                return new Promise((resolve,reject)=>{
+                    if(keyword){
+                        src="/api/attractions?page="+nextPage+"&keyword="+keyword;
+                    }else{
+                        src="/api/attractions?page="+nextPage;
+                    }
+                    fetch(src).then(function(response){
+                        return response.json();
+                    }).then(function(result){
+                        if("error" in result){
+                            container.innerHTML="找不到"+keyword;
+                        }else{
+                            nextPage=result["nextPage"];
+                            for(let i = 0; i < result["data"].length; i++){
+                                let box = document.createElement('div');
+                                let img = document.createElement('img');
+                                let name = document.createElement('div');
+                                let text = document.createElement('div');
+                                let mrt = document.createElement('div');
+                                let category = document.createElement('div');
+                                box.setAttribute("class","box");
+                                let url = result["data"][i]["images"][0];
+                                img.setAttribute("src",url);
+                                img.setAttribute("class","img");
+                                name.textContent=result["data"][i]["name"];
+                                name.setAttribute("class","name");
+                                text.setAttribute("class","text");
+                                mrt.textContent=result["data"][i]["mrt"];
+                                category.textContent=result["data"][i]["category"];
+                                category.style.cssText="text-align:right";
+                                box.appendChild(img);
+                                box.appendChild(name);
+                                text.appendChild(mrt);
+                                text.appendChild(category);
+                                box.appendChild(text);
+                                container.appendChild(box);
+                            }
+                        }
+                    }).catch(function(error){
+                        console.log(error);
+                    });
+                    resolve();
+                })
+            }
+            // 搜尋關鍵字
+            let icon_search=document.getElementById("icon_search");
+            let search=document.getElementById("item3");
+            let keyword;
+            icon_search.addEventListener("click",function(){
+                container.innerHTML="";
+                keyword=search.value;
+                nextPage=0;
+                observer.unobserve(document.getElementById("end"));
+                observer.observe(document.getElementById("end"));
+            });
+            // Input Enter後與搜尋icon連結,發生點擊事件
+            search.addEventListener("keyup",function(event){
+                if (event.keyCode===13){
+                    event.preventDefault();
+                    icon_search.click();
+                }
+            });
+            //追蹤target
+            let observer=new IntersectionObserver(
+                    async function (entries,observer){
+                        if(entries[0].isIntersecting){
+                            if(nextPage==null){
+                                observer.unobserve(entries[0].target);
+                            }else{
+                                await load();
+                            }
+                        }
+                    });
+            observer.observe(document.getElementById("end"));
+        </script>
+    </body>
+</html>
