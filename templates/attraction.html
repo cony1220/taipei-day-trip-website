@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="utf-8" />
+        <title>台北一日遊</title>
+        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='attraction.css')}}" media="all"/>
+    </head>
+    <body>
+        <div style="min-height:100%;position:relative;">
+            <header class="header">
+                <div class="header-container">
+                    <a class="header_item1" href="/">台北一日遊</a>
+                    <div class="header_item2">預定行程</div>
+                    <div class="header_item3">登入/註冊</div>
+                </div>
+            </header>
+            <main class="content">
+                <div class="content_container">
+                    <div id="picture_box">
+                        <img id="picture"/>
+                        <ul id="circle_container"></ul>
+                        <img class="left_arrow" src="{{url_for('static', filename='btn_leftArrow.png')}}"/>
+                        <img class="right_arrow" src="{{url_for('static', filename='btn_rightArrow.png')}}"/>
+                    </div>
+                    <div id="name"></div>
+                    <div id="information"></div>
+                    <form action="/" method="POST" class="booking-content">
+                        <div style="grid-column:1/2;grid-row:2/3;font-weight:bold;">訂購導覽行程</div>
+                        <div style="grid-column:1/2;grid-row:4/5;">以此景點為中心的一日行程，帶您探索城市角落故事</div>
+                        <div id="select_date">
+                            <label>選擇日期： </label>
+                            <input type="date" name=select_date id="selectDate" placeholder="YYYY-MM-DD"/>
+                        </div>
+                        <div id="select_time">
+                            <label>選擇時間： </label>
+                            <label><input type="radio" name="select_time" value="morning" id="morning" onclick="select_morning();" required checked/>上半天</label>
+                            <label><input type="radio" name="select_time" value="afternoon" id="afternoon" onclick="select_afternoon();"/>下半天</label>
+                        </div>
+                        <div id="fee">導覽費用： 新台幣<span id="amount"> 2000 </span>元</div>
+                        <button id="booking_button" onclick="">開始預訂行程</button>
+                    </form>
+                </div>
+                <div class="bar"></div>
+                <div class="content-box">
+                    <div id="description" style="line-height:23px;"></div>
+                    <div style="margin-top:20px;">
+                        <div style="font-weight:bold;line-height:32px;">景點地址：</div>
+                        <div id="address" style="line-height:23px;"></div>
+                    </div>
+                    <div style="margin-top:20px;">
+                        <div style="font-weight:bold;line-height:32px;">交通方式：</div>
+                        <div id="traffic" style="line-height:23px;"></div>
+                    </div>
+                </div>
+            </main>
+            <footer id="end">
+                COPYRIGHT © 2021 台北一日遊
+            </footer>
+        </div>
+        <script>
+            // 建立頁面
+            let picture=document.getElementById("picture");
+            let picture_list=[];
+            let total_image;
+            src="/api"+location.pathname;
+            fetch(src).then(function(response){
+                    return response.json();
+            }).then(function(result){
+                total_image=result["data"]["images"].length;
+                let circle_container=document.getElementById("circle_container");
+                let name=document.getElementById("name");
+                let information=document.getElementById("information");
+                let description=document.getElementById("description");
+                let address=document.getElementById("address");
+                let traffic=document.getElementById("traffic");
+                name.textContent=result["data"]["name"];
+                information.textContent=result["data"]["category"]+" at "+result["data"]["mrt"];
+                description.textContent=result["data"]["description"];
+                address.textContent=result["data"]["address"];
+                traffic.textContent=result["data"]["transport"];
+                for (let i=0;i<total_image;i++){
+                    let circle=document.createElement('li');
+                    let little_circle=document.createElement('div');
+                    if (i==0){
+                        little_circle.classList.add("cur");
+                        picture.src=result["data"]["images"][i];
+                    }
+                    circle.classList.add("circle");
+                    little_circle.classList.add("little_circle");
+                    circle.setAttribute("data-item",i);
+                    circle.appendChild(little_circle);
+                    circle_container.appendChild(circle);
+                    picture_list.push(result["data"]["images"][i]);
+                }
+            }).catch(function(error){
+                console.log(error);
+            });
+            // 切換圖片
+            let idx=0;
+            let left_arrow=document.querySelector('.left_arrow');
+            let right_arrow=document.querySelector('.right_arrow');
+            let circle_list=document.getElementsByClassName('circle');
+            let little_circle_list=document.getElementsByClassName('little_circle');
+            // 右按鈕
+            right_arrow.addEventListener("click",function(){
+                idx++;
+                if (idx>=total_image){
+                    idx=0;
+                }
+                picture.src=picture_list[idx];
+                for (let i=0;i<total_image;i++){
+                    if (i==idx){
+                        little_circle_list[i].classList.add("cur");
+                    }else{
+                        little_circle_list[i].classList.remove("cur");
+                    }
+                }
+            });
+            // 左按鈕
+            left_arrow.addEventListener("click",function(){
+                idx--;
+                if (idx<=-1){
+                    idx=total_image-1;
+                }
+                picture.src=picture_list[idx];
+                for (let i=0;i<total_image;i++){
+                    if (i==idx){
+                        little_circle_list[i].classList.add("cur");
+                    }else{
+                        little_circle_list[i].classList.remove("cur");
+                    }
+                }
+            });
+            // 圓點點擊
+            window.onload=function(){
+                for (let i=0;i<total_image;i++){
+                    circle_list[i].addEventListener("click",function(){
+                        idx=parseInt(circle_list[i].dataset.item);
+                        picture.src=picture_list[idx];
+                        for (let i=0;i<total_image;i++){
+                            if (i==idx){
+                                little_circle_list[i].classList.add("cur");
+                            }else{
+                                little_circle_list[i].classList.remove("cur");
+                            }
+                        }
+                    });
+                }
+            };
+            // 根據選擇時間,變更價錢
+            let amount=document.getElementById("amount");
+            function select_morning(){
+                amount.textContent=" 2000 ";
+            }
+            function select_afternoon(){
+                amount.textContent=" 2500 ";
+            }
+        </script>
+    </body>
+</html>    

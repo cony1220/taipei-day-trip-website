@@ -54,12 +54,6 @@ def booking():
 @app.route("/thankyou")
 def thankyou():
 	return render_template("thankyou.html")
-@app.route("/signin")
-def signin():
-	return render_template("signin.html")
-@app.route("/signup")
-def signup():
-	return render_template("signup.html")
 
 @app.route("/api/attractions", methods=["GET"])
 def attraction_qurey():

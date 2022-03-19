@@ -28,6 +28,7 @@
         <div id="end">COPYRIGHT © 2021 台北一日遊</div>
         <script>
             let nextPage=0;
+            let isFetching=false;
             let container=document.getElementById("container");
             // 載入內容
             function load(){
@@ -50,19 +51,22 @@
                                 let name = document.createElement('div');
                                 let text = document.createElement('div');
                                 let mrt = document.createElement('div');
+                                let connect = document.createElement('a');
                                 let category = document.createElement('div');
                                 box.setAttribute("class","box");
                                 let url = result["data"][i]["images"][0];
                                 img.setAttribute("src",url);
                                 img.setAttribute("class","img");
-                                name.textContent=result["data"][i]["name"];
+                                connect.textContent=result["data"][i]["name"];
                                 name.setAttribute("class","name");
                                 text.setAttribute("class","text");
                                 mrt.textContent=result["data"][i]["mrt"];
                                 category.textContent=result["data"][i]["category"];
                                 category.style.cssText="text-align:right";
+                                connect.href="/attraction/"+result["data"][i]["id"];
                                 box.appendChild(img);
                                 box.appendChild(name);
+                                name.appendChild(connect);
                                 text.appendChild(mrt);
                                 text.appendChild(category);
                                 box.appendChild(text);
@@ -73,6 +77,7 @@
                         console.log(error);
                     });
                     resolve();
+                    isFetching=false;
                 })
             }
             // 搜尋關鍵字
@@ -96,10 +101,11 @@
             //追蹤target
             let observer=new IntersectionObserver(
                     async function (entries,observer){
-                        if(entries[0].isIntersecting){
+                        if((!isFetching)&entries[0].isIntersecting){
                             if(nextPage==null){
                                 observer.unobserve(entries[0].target);
                             }else{
+                                isFetching=true;
                                 await load();
                             }
                         }

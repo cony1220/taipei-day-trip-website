@@ -54,16 +54,16 @@ body{
     border-bottom-right-radius:5px;
 }
 #container{
-    width:1200px;
     margin-top:40px;margin-bottom:40px;
-    margin-left:auto;margin-right:auto;
+    justify-content:center;
+    justify-items:center;
     display:grid;
     grid-template-columns:repeat(4,300px);
 }
 .box{
     width:270px;margin:15px;
     border-radius:7px;
-    border:solid 1px #d8d7d7;
+    border:solid 1px #dbd1d1;
     color:#757575;
 }
 .name{
@@ -112,8 +112,6 @@ body{
     #container{
         width:100%;
         grid-template-columns:45% 45%;
-        justify-content:center;
-        justify-items:center;
     }
     .box{
         width:90%;
@@ -156,7 +154,6 @@ body{
     #container{
         width:100%;
         grid-template-columns:90%;
-        justify-content:center;
     }
     .box{
         width:100%;
