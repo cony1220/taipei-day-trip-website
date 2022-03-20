@@ -60,15 +60,16 @@
         </div>
         <script>
             // 建立頁面
-            let picture=document.getElementById("picture");
-            let picture_list=[];
             let total_image;
+            let picture_list=[];
+            let idx=0;
+            let picture=document.getElementById("picture");
+            let circle_container=document.getElementById("circle_container");
             src="/api"+location.pathname;
             fetch(src).then(function(response){
                     return response.json();
             }).then(function(result){
                 total_image=result["data"]["images"].length;
-                let circle_container=document.getElementById("circle_container");
                 let name=document.getElementById("name");
                 let information=document.getElementById("information");
                 let description=document.getElementById("description");
@@ -80,11 +81,12 @@
                 address.textContent=result["data"]["address"];
                 traffic.textContent=result["data"]["transport"];
                 for (let i=0;i<total_image;i++){
+                    // 建立圓點
                     let circle=document.createElement('li');
                     let little_circle=document.createElement('div');
-                    if (i==0){
+                    if(i==0){
                         little_circle.classList.add("cur");
-                        picture.src=result["data"]["images"][i];
+                        picture.src=result["data"]["images"][0];
                     }
                     circle.classList.add("circle");
                     little_circle.classList.add("little_circle");
@@ -93,50 +95,45 @@
                     circle_container.appendChild(circle);
                     picture_list.push(result["data"]["images"][i]);
                 }
-            }).catch(function(error){
-                console.log(error);
-            });
-            // 切換圖片
-            let idx=0;
-            let left_arrow=document.querySelector('.left_arrow');
-            let right_arrow=document.querySelector('.right_arrow');
-            let circle_list=document.getElementsByClassName('circle');
-            let little_circle_list=document.getElementsByClassName('little_circle');
-            // 右按鈕
-            right_arrow.addEventListener("click",function(){
-                idx++;
-                if (idx>=total_image){
-                    idx=0;
-                }
-                picture.src=picture_list[idx];
-                for (let i=0;i<total_image;i++){
-                    if (i==idx){
-                        little_circle_list[i].classList.add("cur");
-                    }else{
-                        little_circle_list[i].classList.remove("cur");
+                // 切換圖片
+                let little_circle_list=document.getElementsByClassName('little_circle');
+                let left_arrow=document.querySelector('.left_arrow');
+                let right_arrow=document.querySelector('.right_arrow');
+                let circle_list=document.getElementsByClassName('circle');
+                // 右按鈕
+                right_arrow.addEventListener("click",function(){
+                    idx++;
+                    if (idx>=total_image){
+                        idx=0;
                     }
-                }
-            });
-            // 左按鈕
-            left_arrow.addEventListener("click",function(){
-                idx--;
-                if (idx<=-1){
-                    idx=total_image-1;
-                }
-                picture.src=picture_list[idx];
-                for (let i=0;i<total_image;i++){
-                    if (i==idx){
-                        little_circle_list[i].classList.add("cur");
-                    }else{
-                        little_circle_list[i].classList.remove("cur");
+                    picture.src=picture_list[idx];
+                    for (let i=0;i<total_image;i++){
+                        if (i==idx){
+                            little_circle_list[i].classList.add("cur");
+                        }else{
+                            little_circle_list[i].classList.remove("cur");
+                        }
                     }
-                }
-            });
-            // 圓點點擊
-            window.onload=function(){
-                for (let i=0;i<total_image;i++){
-                    circle_list[i].addEventListener("click",function(){
-                        idx=parseInt(circle_list[i].dataset.item);
+                });
+                // 左按鈕
+                left_arrow.addEventListener("click",function(){
+                    idx--;
+                    if (idx<=-1){
+                        idx=total_image-1;
+                    }
+                    picture.src=picture_list[idx];
+                    for (let i=0;i<total_image;i++){
+                        if (i==idx){
+                            little_circle_list[i].classList.add("cur");
+                        }else{
+                            little_circle_list[i].classList.remove("cur");
+                        }
+                    }
+                });
+                // 圓點點擊
+                Array.from(circle_list).forEach(function(item){
+                    item.onclick=function(){
+                        idx=parseInt(this.dataset.item);
                         picture.src=picture_list[idx];
                         for (let i=0;i<total_image;i++){
                             if (i==idx){
@@ -145,9 +142,11 @@
                                 little_circle_list[i].classList.remove("cur");
                             }
                         }
-                    });
-                }
-            };
+                    };
+                })
+            }).catch(function(error){
+                console.log(error);
+            });
             // 根據選擇時間,變更價錢
             let amount=document.getElementById("amount");
             function select_morning(){
