@@ -3,11 +3,14 @@ import mysql.connector
 import os
 from dotenv import load_dotenv
 from mysql.connector import pooling
+import re
+import bcrypt
 
 app=Flask(__name__)
 app.config["JSON_AS_ASCII"]=False
 app.config["TEMPLATES_AUTO_RELOAD"]=True
 
+app.secret_key=os.urandom(24)
 load_dotenv()
 local_password=os.getenv("password")
 connectionpool=pooling.MySQLConnectionPool(pool_name="poolname",
@@ -198,6 +201,114 @@ def id_query(attractionId):
 		response={
 				"error":True,
 				"message":"error"
+			}
+		response=make_response(jsonify(response),500)
+		return response
+	finally:
+		if connection.is_connected():
+			cursor.close()
+			connection.close()
+			print("connection is closed")
+@app.route("/api/user", methods=["GET","PATCH","POST","DELETE"])
+def api_user():
+	try:
+		connection=connectionpool.get_connection()
+		cursor=connection.cursor()
+		if request.method=="PATCH":
+			data=request.get_json()
+			email=data["email"]
+			password=data["password"]
+			cursor.execute("SELECT * FROM `member` WHERE `email`=%s",(email,))
+			user=cursor.fetchone()
+			if user:
+				hashed_password=user[3]
+				if bcrypt.checkpw(password.encode('utf-8'),hashed_password.encode('utf-8')):
+					session["id"]=user[0]
+					session["name"]=user[1]
+					session["email"]=user[2]
+					session["login"]=True
+					response={
+						"ok":True
+					}
+					response=make_response(jsonify(response),200)
+					return response
+			else:
+				response={
+					"error":True,
+					"message":"email or password is incorrect"
+				}
+				response=make_response(jsonify(response),400)
+				return response
+		elif request.method=="GET":
+			if session["login"]==True:
+				response={
+					"data":{
+						"id":session["id"],
+						"name":session["name"],
+						"email":session["email"]
+					}
+				}
+				print(response)
+				response=make_response(jsonify(response),200)
+				return response
+			else:
+				response={
+					"data":None
+				}
+				response=make_response(jsonify(response),200)
+				return response
+		elif request.method=="POST":
+			data=request.get_json()
+			name=data["name"]
+			email=data["email"]
+			password=data["password"]
+			name_pattern=re.compile('[\w]{1,19}$')
+			email_pattern=re.compile('^[a-zA-Z0-9]{3,19}@[a-zA-Z0-9-.]{2,19}$')
+			pattern=re.compile('[a-zA-Z0-9]{3,19}$')
+			print("1")
+			print(name,email,password)
+			if re.match(name_pattern,name) and re.match(email_pattern,email) and re.match(pattern,password):
+				print("2")
+				cursor.execute("SELECT * FROM `member` WHERE `email`=%s",[email])
+				examine_user=cursor.fetchone()
+				if examine_user:
+					response={
+						"error":True,
+						"message":"email already exists"
+					}
+					response=make_response(jsonify(response),400)
+					return response
+				else:
+					print("3")
+					password=password.encode('utf-8')
+					hashed_password=bcrypt.hashpw(password,bcrypt.gensalt())
+					cursor.execute("INSERT INTO `member` (`name`,`email`,`password`)VALUES(%s,%s,%s)",(name,email,hashed_password))
+					connection.commit()
+					response={
+						"ok":True,
+					}
+					response=make_response(jsonify(response),200)
+					return response
+			else:
+				print("4")
+				response={
+					"error":True,
+					"message":"invalid format"
+				}
+				response=make_response(jsonify(response),400)
+				return response
+		elif request.method=="DELETE":
+			session["login"]=False
+			response={
+				"ok":True
+			}
+			response=make_response(jsonify(response),200)
+			return response
+	except:
+		connection.rollback()
+		response={
+				"error":True,
+				"message":"server error"
 			}
 		response=make_response(jsonify(response),500)
 		return response
