@@ -240,7 +240,8 @@ def api_user():
 				response=make_response(jsonify(response),400)
 				return response
 		elif request.method=="GET":
-			if session["login"]==True:
+			status=session.get("login")
+			if status==True:
 				response={
 					"data":{
 						"id":session["id"],
@@ -248,7 +249,6 @@ def api_user():
 						"email":session["email"]
 					}
 				}
-				print(response)
 				response=make_response(jsonify(response),200)
 				return response
 			else:
@@ -265,10 +265,7 @@ def api_user():
 			name_pattern=re.compile('[\w]{1,19}$')
 			email_pattern=re.compile('^[a-zA-Z0-9]{3,19}@[a-zA-Z0-9-.]{2,19}$')
 			pattern=re.compile('[a-zA-Z0-9]{3,19}$')
-			print("1")
-			print(name,email,password)
 			if re.match(name_pattern,name) and re.match(email_pattern,email) and re.match(pattern,password):
-				print("2")
 				cursor.execute("SELECT * FROM `member` WHERE `email`=%s",[email])
 				examine_user=cursor.fetchone()
 				if examine_user:
@@ -279,7 +276,6 @@ def api_user():
 					response=make_response(jsonify(response),400)
 					return response
 				else:
-					print("3")
 					password=password.encode('utf-8')
 					hashed_password=bcrypt.hashpw(password,bcrypt.gensalt())
 					cursor.execute("INSERT INTO `member` (`name`,`email`,`password`)VALUES(%s,%s,%s)",(name,email,hashed_password))
@@ -290,7 +286,6 @@ def api_user():
 					response=make_response(jsonify(response),200)
 					return response
 			else:
-				print("4")
 				response={
 					"error":True,
 					"message":"invalid format"
