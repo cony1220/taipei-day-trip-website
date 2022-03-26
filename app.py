@@ -232,6 +232,13 @@ def api_user():
 					}
 					response=make_response(jsonify(response),200)
 					return response
+				else:
+					response={
+						"error":True,
+						"message":"email or password is incorrect"
+					}
+					response=make_response(jsonify(response),400)
+					return response
 			else:
 				response={
 					"error":True,

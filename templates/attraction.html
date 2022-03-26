@@ -26,7 +26,7 @@
                     <div class="sign_title">登入會員帳號</div>
                     <img class="icon_close" onclick="signin_box_close();" src="{{url_for('static', filename='icon_close.png')}}"/>
                     <input type="text" placeholder="輸入電子信箱" id="signin_email" class="sign_item"/>
-                    <input type="text" placeholder="輸入密碼" id="signin_password" class="sign_item"/>
+                    <input type="password" placeholder="輸入密碼" id="signin_password" class="sign_item"/>
                     <button id="signin_button" class="sign_button" onclick="signin();">登入帳戶</button>
                     <div onclick="switch_to_signup_box();">還沒有帳戶？點此註冊</div>
                     <div id="signin_error" class="sign_message">信箱或密碼錯誤</div>
@@ -39,7 +39,7 @@
                     <img class="icon_close" onclick="signup_box_close();" src="{{url_for('static', filename='icon_close.png')}}"/>
                     <input type="text" placeholder="輸入姓名" id="signup_name" class="sign_item"/>
                     <input type="text" placeholder="輸入電子信箱" id="signup_email" class="sign_item"/>
-                    <input type="text" placeholder="輸入密碼" id="signup_password" class="sign_item"/>
+                    <input type="password" placeholder="輸入密碼" id="signup_password" class="sign_item"/>
                     <button id="signup_button" class="sign_button" onclick="signup();">註冊新帳戶</button>
                     <div onclick="switch_to_signin_box();">已經有帳戶了？點此登入</div>
                     <div id="signup_message" class="sign_message">信箱已被註冊</div>
