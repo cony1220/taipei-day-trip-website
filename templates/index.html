@@ -11,7 +11,7 @@
             <header class="header">
                 <div class="header-container">
                     <div class="header_item1" onclick="window.history.go(0);">台北一日遊</div>
-                    <div class="header_item2"><a href="/booking">預定行程</a></div>
+                    <div class="header_item2" onclick="booking_page();">預定行程</div>
                     <div class="header_item3">
                         <span id="signin_status">
                             <span onclick="signin_box();">登入</span>/<span onclick="signup_box();">註冊</span>
@@ -57,11 +57,15 @@
                 </div>
             </div>
             <main id="container"></main>
+            <div id="loading" style="position:absolute;bottom:120px;left:50%;transform:translateX(-50%)">
+                <div class="loading_icon"></div>
+            </div>
             <footer id="end">
                 COPYRIGHT © 2021 台北一日遊
             </footer>
         </div>
         <script>
+            let loading=document.getElementById("loading");
             let nextPage=0;
             let isFetching=false;
             let container=document.getElementById("container");
@@ -109,6 +113,7 @@
                                 container.appendChild(box);
                             }
                         }
+                        loading.style.display="none";
                         isFetching=false;
                         resolve();
                     }).catch(function(error){
@@ -142,6 +147,7 @@
                                 observer.unobserve(entries[0].target);
                             }else{
                                 isFetching=true;
+                                loading.style.display="block";
                                 await load();
                             }
                         }
@@ -158,7 +164,7 @@
                 if (result["data"]){
                     signin_status.style.display="none";
                     signout_status.style.display="block";
-                }
+                }            
             });
             // 登入框&註冊框
             let signinBox=document.getElementById("signinBox");
@@ -265,6 +271,22 @@
                 }).then(function(result){
                     if (result["ok"]==true){
                         window.location.replace(location.href);
+                    }
+                });
+            }
+            // header預定行程
+            function booking_page(){
+                fetch('/api/user',{
+                    method:"GET"
+                }).then(function(response){
+                    return response.json()
+                }).then(function(result){
+                    if (result["data"]){
+                        window.location.href='/booking';
+                    }
+                    else{
+                        signinBox.style.display="block";
+                        cover.style.display="block";
                     }
                 });
             }

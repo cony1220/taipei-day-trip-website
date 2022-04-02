@@ -309,9 +309,9 @@ def api_user():
 	except:
 		connection.rollback()
 		response={
-				"error":True,
-				"message":"server error"
-			}
+			"error":True,
+			"message":"server error"
+		}
 		response=make_response(jsonify(response),500)
 		return response
 	finally:
@@ -320,5 +320,117 @@ def api_user():
 			connection.close()
 			print("connection is closed")
 
+@app.route("/api/booking", methods=["GET","POST","DELETE"])
+def api_booking():
+	try:
+		connection=connectionpool.get_connection()
+		cursor=connection.cursor()
+		if request.method=="GET":
+			status=session.get("login")
+			if status==True:
+				user_id=session.get("id")
+				cursor.execute("SELECT * FROM `booking` WHERE `user_id`=%s",[user_id])
+				information=cursor.fetchone()
+				if information:
+					attraction_id=information[2]
+					cursor.execute("SELECT * FROM `location` WHERE `id`=%s",[attraction_id])
+					data=cursor.fetchone()
+					images=data[9].split(",")
+					response={
+						"data":{
+							"attraction":{
+								"id":data[0],
+								"name":data[1],
+								"address":data[4],
+								"image":images[0]
+							},
+							"date":information[3],
+							"time":information[4],
+							"price":information[5]
+						}
+					}
+					response=make_response(jsonify(response),200)
+					return response
+				else:
+					response={
+						"data":None
+					}
+					response=make_response(jsonify(response),200)
+					return response
+			else:
+				response={
+					"error":True,
+					"message":"Not loging"
+				}
+				response=make_response(jsonify(response),403)
+				return response
+		elif request.method=="POST":
+			status=session.get("login")
+			if status==True:
+				data=request.get_json()
+				attraction_id=data["attractionId"]
+				cursor.execute("SELECT * FROM `location` WHERE `id`=%s",[attraction_id])
+				information=cursor.fetchone()
+				if information:
+					user_id=session.get("id")
+					date=data["date"]
+					time=data["time"]
+					price=data["price"]
+					cursor.execute("SELECT * FROM `booking` WHERE `user_id`=%s",[user_id])
+					booking_data=cursor.fetchone()
+					if booking_data:
+						cursor.execute("DELETE FROM `booking` WHERE `user_id` =%s",[user_id])
+					cursor.execute("INSERT INTO `booking` (`user_id`,`attraction_id`,`date`,`time`,`price`)VALUES(%s,%s,%s,%s,%s)",(user_id,attraction_id,date,time,price))
+					connection.commit()
+					response={
+						"ok":True,
+					}
+					response=make_response(jsonify(response),200)
+					return response
+				else:
+					response={
+						"error":True,
+						"message":"Data doesen't exist"
+					}
+					response=make_response(jsonify(response),400)
+					return response
+			else:
+				response={
+					"error":True,
+					"message":"Not loging"
+				}
+				response=make_response(jsonify(response),403)
+				return response
+		elif request.method=="DELETE":
+			status=session.get("login")
+			if status==True:
+				user_id=session.get("id")
+				cursor.execute("DELETE FROM `booking` WHERE `user_id` = %s",[user_id])
+				connection.commit()
+				response={
+					"ok":True,
+				}
+				response=make_response(jsonify(response),200)
+				return response
+			else:
+				response={
+					"error":True,
+					"message":"Not loging"
+				}
+				response=make_response(jsonify(response),403)
+				return response
+	except:
+		connection.rollback()
+		response={
+			"error":True,
+			"message":"Server error"
+		}
+		response=make_response(jsonify(response),500)
+		return response
+	finally:
+		if connection.is_connected():
+			cursor.close()
+			connection.close()
+			print("connection is closed")
 if __name__=="__main__":
     app.run(host='0.0.0.0',port=3000)

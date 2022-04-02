@@ -36,7 +36,8 @@ a{
     margin-bottom:10px;
     height:14px;
     padding:10px;
-    grid-column:3/4
+    grid-column:3/4;
+    cursor:pointer;
 }
 .header_item3{
     font-size:16px;
@@ -119,6 +120,21 @@ a{
     border-top-left-radius:7px;border-top-right-radius:7px;
     height:160px;
     width:100%;object-fit:cover;
+}
+@keyframes loading {
+    50% {
+        transform: rotate(180deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+.loading_icon{
+    animation: loading 1s 0s infinite;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border:5px dashed #448899;
 }
 #end{
     position:absolute;bottom:0;width:100%;

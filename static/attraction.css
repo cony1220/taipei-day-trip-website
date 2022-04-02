@@ -1,8 +1,7 @@
-html,body{
+body{
     margin:0px;
     font-family:Noto Sans TC;
     color:#666666;
-    height:100%;
 }
 a{
     text-decoration:none;
@@ -37,6 +36,7 @@ a{
     height:14px;
     padding:10px;
     grid-column:3/4;
+    cursor:pointer;
 }
 .header_item3{
     font-size:16px;
@@ -143,6 +143,7 @@ a{
     justify-content:center;
     align-items:center;
     font-size:16px;
+    position:relative;
 }
 #select_date{
     grid-column:1/2;
@@ -205,6 +206,13 @@ input[type=radio]:checked:before {
     text-align:center;line-height:16px;
     border:0px;
     cursor:pointer;
+}
+#warning{
+    display:none;
+    color:red;
+    grid-row:12/13;
+    position:absolute;
+    left:190px;
 }
 .bar{
     border: 1px solid #E8E8E8;

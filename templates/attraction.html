@@ -11,7 +11,7 @@
             <header class="header">
                 <div class="header-container">
                     <a class="header_item1" href="/">台北一日遊</a>
-                    <div class="header_item2"><a href="/booking">預定行程</a></div>
+                    <div class="header_item2" onclick="booking_page();">預定行程</div>
                     <div class="header_item3">
                         <span id="signin_status">
                             <span onclick="signin_box();">登入</span>/<span onclick="signup_box();">註冊</span>
@@ -56,12 +56,12 @@
                     </div>
                     <div id="name"></div>
                     <div id="information"></div>
-                    <form action="/api/attractions" method="GET" class="booking-content">
+                    <div class="booking-content">
                         <div style="grid-column:1/2;grid-row:2/3;font-weight:bold;">訂購導覽行程</div>
                         <div style="grid-column:1/2;grid-row:4/5;">以此景點為中心的一日行程，帶您探索城市角落故事</div>
                         <div id="select_date">
                             <label>選擇日期： </label>
-                            <input type="date" name=select_date id="selectDate" placeholder="YYYY-MM-DD"/>
+                            <input type="date" name=select_date id="selectDate" placeholder="YYYY-MM-DD" onclick="select_Date();"/>
                         </div>
                         <div id="select_time">
                             <label>選擇時間： </label>
@@ -69,8 +69,9 @@
                             <label><input type="radio" name="select_time" value="afternoon" id="afternoon" onclick="select_afternoon();"/>下半天</label>
                         </div>
                         <div id="fee">導覽費用： 新台幣<span id="amount"> 2000 </span>元</div>
-                        <button id="booking_button" onclick="">開始預訂行程</button>
-                    </form>
+                        <button id="booking_button" onclick="booking_button();">開始預訂行程</button>
+                        <span id="warning">請選擇日期</span>
+                    </div>
                 </div>
                 <div class="bar"></div>
                 <div class="content-box">
@@ -178,13 +179,36 @@
             }).catch(function(error){
                 console.log(error);
             });
+            // 日期default
+            let selectDate=document.getElementById("selectDate");
+            let today=new Date();
+            let dd=today.getDate();
+            let mm=today.getMonth()+1;
+            let next_mm=mm+1;
+            let yyyy=today.getFullYear();
+            if (dd<10){
+                dd='0'+dd;
+            }
+            if (mm<10){
+                mm='0'+mm;
+            }
+            if (next_mm<10){
+                next_mm='0'+next_mm;
+            }
+            today=yyyy+'-'+mm+'-'+dd;
+            future=yyyy+'-'+next_mm+'-'+dd;
+            selectDate.setAttribute("min",today);
+            selectDate.setAttribute("max",future);
             // 根據選擇時間,變更價錢
             let amount=document.getElementById("amount");
+            let price=2000;
             function select_morning(){
                 amount.textContent=" 2000 ";
+                price=2000;
             }
             function select_afternoon(){
                 amount.textContent=" 2500 ";
+                price=2500;
             }
             // 登入狀態
             let signin_status=document.getElementById("signin_status");
@@ -306,6 +330,69 @@
                         window.location.replace(location.href);
                     }
                 });
+            }
+            // header預定行程
+            function booking_page(){
+                fetch('/api/user',{
+                    method:"GET"
+                }).then(function(response){
+                    return response.json()
+                }).then(function(result){
+                    if (result["data"]){
+                        window.location.href='/booking';
+                    }else{
+                        signinBox.style.display="block";
+                        cover.style.display="block";
+                    }
+                });
+            }
+            // 預定行程按鈕
+            function booking_button(){
+                let id=location.pathname.split("/")[2];
+                let select_time_radio=document.getElementsByName("select_time");
+                let time;
+                for (let i=0;i<select_time_radio.length;i++){
+                    if (select_time_radio[i].checked){
+                        time=select_time_radio[i].value;
+                    }
+                }
+                let data={
+                    "attractionId":Number(id),
+                    "date":selectDate.value,
+                    "time":time,
+                    "price":price
+                }
+                if (selectDate.value){
+                    fetch('/api/user',{
+                        method:"GET"
+                    }).then(function(response){
+                        return response.json()
+                    }).then(function(result){
+                        if (result["data"]){
+                            fetch('/api/booking',{
+                                method:"POST",
+                                body: JSON.stringify(data),
+                                headers: new Headers({
+                                    'Content-Type': 'application/json'
+                                })
+                            }).then(function(response){
+                                return response.json()
+                            }).then(function(booking_status){
+                                if (booking_status["ok"]){
+                                    window.location.replace('/booking');
+                                }
+                            });
+                        }else{
+                            signinBox.style.display="block";
+                            cover.style.display="block";
+                        }
+                    });
+                }else{
+                    warning.style.display="block";
+                }
+            }
+            function select_Date(){
+                warning.style.display="none";
             }
         </script>
     </body>
