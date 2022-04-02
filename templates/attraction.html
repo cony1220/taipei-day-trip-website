@@ -11,10 +11,41 @@
             <header class="header">
                 <div class="header-container">
                     <a class="header_item1" href="/">台北一日遊</a>
-                    <div class="header_item2">預定行程</div>
-                    <div class="header_item3">登入/註冊</div>
+                    <div class="header_item2" onclick="booking_page();">預定行程</div>
+                    <div class="header_item3">
+                        <span id="signin_status">
+                            <span onclick="signin_box();">登入</span>/<span onclick="signup_box();">註冊</span>
+                        </span>
+                        <span id="signout_status" onclick="signout();">登出系統</span>
+                    </div>
                 </div>
             </header>
+            <div id="signinBox" class="signBox">
+                <div class="sign_bar"></div>
+                <div class="sign_box_wrap">
+                    <div class="sign_title">登入會員帳號</div>
+                    <img class="icon_close" onclick="signin_box_close();" src="{{url_for('static', filename='icon_close.png')}}"/>
+                    <input type="email" placeholder="輸入電子信箱" id="signin_email" class="sign_item" onclick="init_input();"/>
+                    <input type="password" placeholder="輸入密碼" id="signin_password" class="sign_item" onclick="init_input();"/>
+                    <button id="signin_button" class="sign_button" onclick="signin();">登入帳戶</button>
+                    <div onclick="switch_to_signup_box();">還沒有帳戶？點此註冊</div>
+                    <div id="signin_error" class="sign_message">信箱或密碼錯誤</div>
+                </div>
+            </div>
+            <div id="signupBox" class="signBox">
+                <div class="sign_bar"></div>
+                <div class="sign_box_wrap">
+                    <div class="sign_title">註冊會員帳號</div>
+                    <img class="icon_close" onclick="signup_box_close();" src="{{url_for('static', filename='icon_close.png')}}"/>
+                    <input type="text" placeholder="輸入姓名" id="signup_name" class="sign_item" onclick="init_input();"/>
+                    <input type="email" placeholder="輸入電子信箱" id="signup_email" class="sign_item" onclick="init_input();"/>
+                    <input type="password" placeholder="輸入密碼" id="signup_password" class="sign_item" onclick="init_input();"/>
+                    <button id="signup_button" class="sign_button" onclick="signup();">註冊新帳戶</button>
+                    <div onclick="switch_to_signin_box();">已經有帳戶了？點此登入</div>
+                    <div id="signup_message" class="sign_message">信箱已被註冊</div>
+                </div>
+            </div>
+            <div id="cover"></div>
             <main class="content">
                 <div class="content_container">
                     <div id="picture_box">
@@ -25,12 +56,12 @@
                     </div>
                     <div id="name"></div>
                     <div id="information"></div>
-                    <form action="/" method="POST" class="booking-content">
+                    <div class="booking-content">
                         <div style="grid-column:1/2;grid-row:2/3;font-weight:bold;">訂購導覽行程</div>
                         <div style="grid-column:1/2;grid-row:4/5;">以此景點為中心的一日行程，帶您探索城市角落故事</div>
                         <div id="select_date">
                             <label>選擇日期： </label>
-                            <input type="date" name=select_date id="selectDate" placeholder="YYYY-MM-DD"/>
+                            <input type="date" name=select_date id="selectDate" placeholder="YYYY-MM-DD" onclick="select_Date();"/>
                         </div>
                         <div id="select_time">
                             <label>選擇時間： </label>
@@ -38,8 +69,9 @@
                             <label><input type="radio" name="select_time" value="afternoon" id="afternoon" onclick="select_afternoon();"/>下半天</label>
                         </div>
                         <div id="fee">導覽費用： 新台幣<span id="amount"> 2000 </span>元</div>
-                        <button id="booking_button" onclick="">開始預訂行程</button>
-                    </form>
+                        <button id="booking_button" onclick="booking_button();">開始預訂行程</button>
+                        <span id="warning">請選擇日期</span>
+                    </div>
                 </div>
                 <div class="bar"></div>
                 <div class="content-box">
@@ -147,13 +179,220 @@
             }).catch(function(error){
                 console.log(error);
             });
+            // 日期default
+            let selectDate=document.getElementById("selectDate");
+            let today=new Date();
+            let dd=today.getDate();
+            let mm=today.getMonth()+1;
+            let next_mm=mm+1;
+            let yyyy=today.getFullYear();
+            if (dd<10){
+                dd='0'+dd;
+            }
+            if (mm<10){
+                mm='0'+mm;
+            }
+            if (next_mm<10){
+                next_mm='0'+next_mm;
+            }
+            today=yyyy+'-'+mm+'-'+dd;
+            future=yyyy+'-'+next_mm+'-'+dd;
+            selectDate.setAttribute("min",today);
+            selectDate.setAttribute("max",future);
             // 根據選擇時間,變更價錢
             let amount=document.getElementById("amount");
+            let price=2000;
             function select_morning(){
                 amount.textContent=" 2000 ";
+                price=2000;
             }
             function select_afternoon(){
                 amount.textContent=" 2500 ";
+                price=2500;
+            }
+            // 登入狀態
+            let signin_status=document.getElementById("signin_status");
+            let signout_status=document.getElementById("signout_status");
+            fetch('/api/user',{
+                method:"GET"
+            }).then(function(response){
+                return response.json()
+            }).then(function(result){
+                if (result["data"]){
+                    signin_status.style.display="none";
+                    signout_status.style.display="block";
+                }
+            });
+            // 登入框&註冊框
+            let signinBox=document.getElementById("signinBox");
+            let signupBox=document.getElementById("signupBox");
+            let cover=document.getElementById("cover");
+            let signin_error=document.getElementById("signin_error");
+            let signup_message=document.getElementById("signup_message");
+            function init_input(){
+                if(signin_error.style.display="block"){
+                    signin_error.style.display="none";
+                }
+                if(signup_message.style.display="block"){
+                    signup_message.style.display="none";
+                }
+            }
+            function signin_box(){
+                signinBox.style.display="block";
+                cover.style.display="block";
+                signin_error.style.display="none";
+            }
+            function signup_box(){
+                signupBox.style.display="block";
+                cover.style.display="block";
+                signup_message.style.display="none";
+            }
+            function switch_to_signup_box(){
+                signinBox.style.display="none";
+                signupBox.style.display="block";
+                signup_message.style.display="none";
+            }
+            function switch_to_signin_box(){
+                signinBox.style.display="block";
+                signupBox.style.display="none";
+                signin_error.style.display="none";
+            }
+            function signin_box_close(){
+                signinBox.style.display="none";
+                cover.style.display="none";
+            }
+            function signup_box_close(){
+                signupBox.style.display="none";
+                cover.style.display="none";
+            }
+            // 登入&註冊
+            function signin(){
+                let signin_email=document.getElementById("signin_email");
+                let signin_password=document.getElementById("signin_password");
+                let data={
+                    "email":signin_email.value,
+                    "password":signin_password.value
+                }
+                fetch('/api/user',{
+                    method:"PATCH",
+                    body: JSON.stringify(data),
+                    headers: new Headers({
+                        'Content-Type': 'application/json'
+                    })
+                }).then(function(response){
+                    return response.json()
+                }).then(function(result){
+                    if (result["ok"]==true){
+                        window.location.replace(location.href);
+                    }else{
+                        signin_error.style.display="block";
+                    }
+                });
+            }
+            function signup(){
+                let signup_name=document.getElementById("signup_name");
+                let signup_email=document.getElementById("signup_email");
+                let signup_password=document.getElementById("signup_password");
+                let data={
+                    "name":signup_name.value,
+                    "email":signup_email.value,
+                    "password":signup_password.value
+                }
+                fetch('/api/user',{
+                    method:"POST",
+                    body: JSON.stringify(data),
+                    headers: new Headers({
+                        'Content-Type': 'application/json'
+                    })
+                }).then(function(response){
+                    return response.json()
+                }).then(function(result){
+                    if (result["ok"]==true){
+                        signup_message.style.display="block";
+                        signup_message.textContent="註冊成功";
+                    }else if(result["message"]=="email already exists"){
+                        signup_message.style.display="block";
+                        signup_message.textContent="信箱已被註冊";
+                    }else{
+                        signup_message.style.display="block";
+                        signup_message.textContent="格式錯誤";
+                    }
+                });
+            }
+            // 登出
+            function signout(){
+                fetch('/api/user',{
+                    method:"DELETE"
+                }).then(function(response){
+                    return response.json()
+                }).then(function(result){
+                    if (result["ok"]==true){
+                        window.location.replace(location.href);
+                    }
+                });
+            }
+            // header預定行程
+            function booking_page(){
+                fetch('/api/user',{
+                    method:"GET"
+                }).then(function(response){
+                    return response.json()
+                }).then(function(result){
+                    if (result["data"]){
+                        window.location.href='/booking';
+                    }else{
+                        signinBox.style.display="block";
+                        cover.style.display="block";
+                    }
+                });
+            }
+            // 預定行程按鈕
+            function booking_button(){
+                let id=location.pathname.split("/")[2];
+                let select_time_radio=document.getElementsByName("select_time");
+                let time;
+                for (let i=0;i<select_time_radio.length;i++){
+                    if (select_time_radio[i].checked){
+                        time=select_time_radio[i].value;
+                    }
+                }
+                let data={
+                    "attractionId":Number(id),
+                    "date":selectDate.value,
+                    "time":time,
+                    "price":price
+                }
+                if (selectDate.value){
+                    fetch('/api/user',{
+                        method:"GET"
+                    }).then(function(response){
+                        return response.json()
+                    }).then(function(result){
+                        if (result["data"]){
+                            fetch('/api/booking',{
+                                method:"POST",
+                                body: JSON.stringify(data),
+                                headers: new Headers({
+                                    'Content-Type': 'application/json'
+                                })
+                            }).then(function(response){
+                                return response.json()
+                            }).then(function(booking_status){
+                                if (booking_status["ok"]){
+                                    window.location.replace('/booking');
+                                }
+                            });
+                        }else{
+                            signinBox.style.display="block";
+                            cover.style.display="block";
+                        }
+                    });
+                }else{
+                    warning.style.display="block";
+                }
+            }
+            function select_Date(){
+                warning.style.display="none";
             }
         </script>
     </body>
