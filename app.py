@@ -397,7 +397,7 @@ def api_booking():
 			else:
 				response={
 					"error":True,
-					"message":"Not loging"
+					"message":"Not Loging"
 				}
 				response=make_response(jsonify(response),403)
 				return response
