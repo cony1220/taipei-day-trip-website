@@ -462,7 +462,7 @@ def api_orders():
 				pay_status=1
 				pay_message="付款失敗"
 				tonow=datetime.datetime.today()
-				cursor.execute("select count(*) from `order`")
+				cursor.execute("select count(*) from `orders`")
 				order_number=cursor.fetchone()
 				order_number=order_number[0]+1
 				number=str(tonow.year)+str(tonow.month)+str(tonow.day)+str(tonow.hour)+str(tonow.minute)+str(tonow.second)+str(user_id)+str(attraction_id)+str(order_number)
@@ -486,10 +486,11 @@ def api_orders():
 				}
 				r=req.post(url,json=pay_data,headers=headers)
 				r_json=r.json()
+				print(r_json)
 				if (r_json["status"]==0):
 					pay_status=0
 					pay_message="付款成功"
-				cursor.execute("INSERT INTO `order` VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(number,user_id,price,attraction_id,attraction_name,attraction_address,image,date,time,name,email,phone,pay_status))
+				cursor.execute("INSERT INTO `orders` VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(number,user_id,price,attraction_id,attraction_name,attraction_address,image,date,time,name,email,phone,pay_status))
 				connection.commit()
 				response={
 					"data":{
@@ -538,7 +539,7 @@ def api_order(orderNumber):
 		status=session.get("login")
 		user_id=session.get("id")
 		if status==True:
-			cursor.execute("SELECT * FROM `order` WHERE `number`=%s and `user_id`=%s",(orderNumber,user_id))
+			cursor.execute("SELECT * FROM `orders` WHERE `number`=%s and `user_id`=%s",(orderNumber,user_id))
 			data=cursor.fetchone()
 			if data:
 				response={

@@ -47,8 +47,8 @@
             </div>
             <div id="cover"></div>
             <main class="content">
-                <div id="content_box" style="padding:10px;">
-                    <div style="font-size:19px;font-weight:bold;margin:10px;">行程預定<span id="pay_status"></span></div>
+                <div id="content_box">
+                    <div class="title">行程預定<span id="pay_status"></span></div>
                     <div class="content_item">訂單編號：<span id="number"></span></div>
                     <div class="content_item">台北一日遊：<span id="order_name"></span></div>
                     <div class="content_item">日期：<span id="date"></span></div>
@@ -56,6 +56,7 @@
                     <div class="content_item">費用：<span id="pay"></span></div>
                     <div class="content_item">地點：<span id="address"></span></div>
                 </div>
+                <div id="loading" class="loading_icon"></div>
             </main>
             <footer class="end">
                 COPYRIGHT © 2021 台北一日遊
@@ -76,6 +77,8 @@
                     number=document.getElementById("number");
                     number.textContent=oreder_number;
                     //內容
+                    let loading=document.getElementById("loading");
+                    let content=document.getElementById("content");
                     let content_box=document.getElementById("content_box");
                     let pay_status=document.getElementById("pay_status");
                     let order_name=document.getElementById("order_name");
@@ -104,6 +107,8 @@
                         }else{
                             content_box.textContent="沒有資料";
                         }
+                        loading.style.display="none";
+                        content_box.style.display="block";
                     });
                 }else{
                     window.location.replace('/');

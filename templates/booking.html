@@ -65,7 +65,7 @@
                         <div class="booking_title">您的聯絡資訊</div>
                         <div class="default_item"><span>聯絡姓名：</span><span id="name" class="booking_input_item"></span></div>
                         <div class="default_item"><span>連絡信箱：</span><span id="email" class="booking_input_item"></span></div>
-                        <div class="booking_item">手機號碼：<input type="text" id="phone" class="booking_input_item"/></div>
+                        <div class="booking_item">手機號碼：<input type="text" id="phone" class="booking_input_item" onclick="phone_number();"/><span id="warning">請輸入手機號碼</span></div>
                         <div class="warning">請保持手機暢通，準時到達，導覽人員將用手機與您聯繫，務必留下正確的聯絡方式。</div>
                     </div>
                     <div class="bar"></div>
@@ -151,53 +151,58 @@
                             booking_price.textContent=booking_information["data"]["price"];
                             pay_price.textContent=booking_information["data"]["price"];
                             // 付款按鈕
+                            let warning=document.getElementById("warning");
                             let phone=document.getElementById("phone");
                             let pay_button=document.getElementById("pay_button");
                             pay_button.addEventListener("click",function(){
-                                const tappayStatus=TPDirect.card.getTappayFieldsStatus();
-                                if (tappayStatus.canGetPrime===false){
-                                    return
-                                }
-                                TPDirect.card.getPrime((card_result)=>{
-                                    if (card_result.status!==0){
-                                        console.log('get prime error'+card_result.msg);
+                                if (phone.value){
+                                    const tappayStatus=TPDirect.card.getTappayFieldsStatus();
+                                    if (tappayStatus.canGetPrime===false){
                                         return
                                     }
-                                    let data={
-                                        "prime":card_result.card.prime,
-                                        "orders":{
-                                            "price":booking_information["data"]["price"],
-                                            "trip":{
-                                                "attraction":{
-                                                    "id":booking_information["data"]["attraction"]["id"],
-                                                    "name":booking_information["data"]["attraction"]["name"],
-                                                    "address":booking_information["data"]["attraction"]["address"],
-                                                    "image":booking_information["data"]["attraction"]["image"]
+                                    TPDirect.card.getPrime((card_result)=>{
+                                        if (card_result.status!==0){
+                                            console.log('get prime error'+card_result.msg);
+                                            return
+                                        }
+                                        let data={
+                                            "prime":card_result.card.prime,
+                                            "orders":{
+                                                "price":booking_information["data"]["price"],
+                                                "trip":{
+                                                    "attraction":{
+                                                        "id":booking_information["data"]["attraction"]["id"],
+                                                        "name":booking_information["data"]["attraction"]["name"],
+                                                        "address":booking_information["data"]["attraction"]["address"],
+                                                        "image":booking_information["data"]["attraction"]["image"]
+                                                    },
+                                                    "date":booking_information["data"]["date"],
+                                                    "time":booking_information["data"]["time"]
                                                 },
-                                                "date":booking_information["data"]["date"],
-                                                "time":booking_information["data"]["time"]
-                                            },
-                                            "contact":{
-                                                "name":result["data"]["name"],
-                                                "email":result["data"]["email"],
-                                                "phone":phone.value
+                                                "contact":{
+                                                    "name":result["data"]["name"],
+                                                    "email":result["data"]["email"],
+                                                    "phone":phone.value
+                                                }
                                             }
                                         }
-                                    }
-                                    fetch('/api/orders',{
-                                        method:"POST",
-                                        body: JSON.stringify(data),
-                                        headers: new Headers({
-                                            'Content-Type': 'application/json'
-                                        })
-                                    }).then(function(response){
-                                        return response.json()
-                                    }).then(function(result){
-                                        if (result["data"]){
-                                            window.location.replace('/thankyou?number='+result["data"]["number"]);
-                                        }
-                                    });
-                                })
+                                        fetch('/api/orders',{
+                                            method:"POST",
+                                            body: JSON.stringify(data),
+                                            headers: new Headers({
+                                                'Content-Type': 'application/json'
+                                            })
+                                        }).then(function(response){
+                                            return response.json()
+                                        }).then(function(result){
+                                            if (result["data"]){
+                                                window.location.replace('/thankyou?number='+result["data"]["number"]);
+                                            }
+                                        });
+                                    })
+                                }else{
+                                    warning.style.display="inline-block";
+                                }
                             })
                         }else{
                             has_data.style.display="none";
@@ -209,6 +214,11 @@
                     window.location.replace('/');
                 }
             });
+            //電話號碼
+            let warning=document.getElementById("warning");
+            function phone_number(){
+                warning.style.display="none";
+            }
             // 刪除資料
             function delete_data(){
                 fetch('api/booking',{
@@ -332,7 +342,7 @@
         </script>
         <script src="https://js.tappaysdk.com/tpdirect/v5.8.0"></script>
         <script>
-            TPDirect.setupSDK(app_id,app_key,'sandbox');
+            TPDirect.setupSDK(app_id,'app_key','sandbox');
             let fields={
                 number:{
                     element:'#card-number',

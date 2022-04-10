@@ -141,6 +141,11 @@ a{
     color:#000000;
     padding:10px;
 }
+#warning{
+    color:red;
+    margin-left:5px;
+    display:none;
+}
 .default_item{
     margin-top:15px;
     display:grid;align-items:center;grid-template-columns:81px 200px;
