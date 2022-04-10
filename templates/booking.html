@@ -71,15 +71,24 @@
                     <div class="bar"></div>
                     <div class="content_container">
                         <div class="booking_title">信用卡付款資訊</div>
-                        <div class="booking_item">卡片號碼：<input type="text" id="account" class="booking_input_item" placeholder="**** **** **** ****"/></div>
-                        <div class="booking_item">過期時間：<input type="text" id="time" class="booking_input_item" placeholder="MM/YY"/></div>
-                        <div class="booking_item">驗證密碼：<input type="text" id="password" class="booking_input_item" placeholder="CVV"/></div>
+                        <div class="card_item booking_item">
+                            <span>卡片號碼：</span>
+                            <div id="card-number" class="booking_input_item"></div>  
+                        </div>
+                        <div class="card_item booking_item">    
+                            <span>過期時間：</span>
+                            <div id="card-expiration-date" class="booking_input_item"></div>
+                        </div> 
+                        <div class="card_item booking_item">
+                            <span>驗證密碼：</span>
+                            <div id="card-ccv" class="booking_input_item"></div>
+                        </div>
                     </div>
                     <div class="bar"></div>
                     <div class="content_container">
                         <div class="pay_information">
                             <div class="pay_box">總價：新台幣 <span id="pay_price"></span> 元</div>
-                            <button id="pay_button" onclick="">確認訂購並付款</button>
+                            <button id="pay_button">確認訂購並付款</button>
                         </div>
                     </div>
                 </div>
@@ -141,6 +150,55 @@
                             booking_address.textContent=booking_information["data"]["attraction"]["address"];
                             booking_price.textContent=booking_information["data"]["price"];
                             pay_price.textContent=booking_information["data"]["price"];
+                            // 付款按鈕
+                            let phone=document.getElementById("phone");
+                            let pay_button=document.getElementById("pay_button");
+                            pay_button.addEventListener("click",function(){
+                                const tappayStatus=TPDirect.card.getTappayFieldsStatus();
+                                if (tappayStatus.canGetPrime===false){
+                                    return
+                                }
+                                TPDirect.card.getPrime((card_result)=>{
+                                    if (card_result.status!==0){
+                                        console.log('get prime error'+card_result.msg);
+                                        return
+                                    }
+                                    let data={
+                                        "prime":card_result.card.prime,
+                                        "orders":{
+                                            "price":booking_information["data"]["price"],
+                                            "trip":{
+                                                "attraction":{
+                                                    "id":booking_information["data"]["attraction"]["id"],
+                                                    "name":booking_information["data"]["attraction"]["name"],
+                                                    "address":booking_information["data"]["attraction"]["address"],
+                                                    "image":booking_information["data"]["attraction"]["image"]
+                                                },
+                                                "date":booking_information["data"]["date"],
+                                                "time":booking_information["data"]["time"]
+                                            },
+                                            "contact":{
+                                                "name":result["data"]["name"],
+                                                "email":result["data"]["email"],
+                                                "phone":phone.value
+                                            }
+                                        }
+                                    }
+                                    fetch('/api/orders',{
+                                        method:"POST",
+                                        body: JSON.stringify(data),
+                                        headers: new Headers({
+                                            'Content-Type': 'application/json'
+                                        })
+                                    }).then(function(response){
+                                        return response.json()
+                                    }).then(function(result){
+                                        if (result["data"]){
+                                            window.location.replace('/thankyou?number='+result["data"]["number"]);
+                                        }
+                                    });
+                                })
+                            })
                         }else{
                             has_data.style.display="none";
                             hasnt_data.style.display="block";
@@ -271,6 +329,57 @@
                     }
                 });
             }
+        </script>
+        <script src="https://js.tappaysdk.com/tpdirect/v5.8.0"></script>
+        <script>
+            TPDirect.setupSDK(app_id,app_key,'sandbox');
+            let fields={
+                number:{
+                    element:'#card-number',
+                    placeholder:'**** **** **** ****'
+                },
+                expirationDate:{
+                    element:'#card-expiration-date',
+                    placeholder:'MM / YY'
+                },
+                ccv:{
+                    element:'#card-ccv',
+                    placeholder:'CCV'
+                }
+            }
+            TPDirect.card.setup({
+                fields:fields,
+                styles: {
+                    // Style all elements
+                    'input': {
+                        'color': 'gray'
+                    },
+                    // Styling ccv field
+                    'input.ccv': {
+                        // 'font-size': '16px'
+                    },
+                    // Styling expiration-date field
+                    'input.expiration-date': {
+                        // 'font-size': '16px'
+                    },
+                    // Styling card-number field
+                    'input.card-number': {
+                        // 'font-size': '16px'
+                    },
+                    // style focus state
+                    ':focus': {
+                        // 'color': 'black'
+                    },
+                    // style valid state
+                    '.valid': {
+                        'color': 'green'
+                    },
+                    // style invalid state
+                    '.invalid': {
+                        'color': 'red'
+                    }
+                }
+            })
         </script>
     </body>
 </html>

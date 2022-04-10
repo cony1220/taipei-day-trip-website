@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from mysql.connector import pooling
 import re
 import bcrypt
+import datetime
+import requests as req
 
 app=Flask(__name__)
 app.config["JSON_AS_ASCII"]=False
@@ -13,6 +15,7 @@ app.config["TEMPLATES_AUTO_RELOAD"]=True
 app.secret_key=os.urandom(24)
 load_dotenv()
 local_password=os.getenv("password")
+partner_key=os.getenv("partner_key")
 connectionpool=pooling.MySQLConnectionPool(pool_name="poolname",
                                             pool_size=3,
                                             pool_reset_session=True,
@@ -21,6 +24,7 @@ connectionpool=pooling.MySQLConnectionPool(pool_name="poolname",
                                             user="root",
                                             password=local_password,
                                             database="Attractions")
+
 def get_data(cursor,n):
 	data=cursor.fetchall()
 	# 取得欄位名稱
@@ -432,5 +436,162 @@ def api_booking():
 			cursor.close()
 			connection.close()
 			print("connection is closed")
+
+@app.route("/api/orders", methods=["POST"])
+def api_orders():
+	try:
+		connection=connectionpool.get_connection()
+		cursor=connection.cursor()
+		status=session.get("login")
+		user_id=session.get("id")
+		if status==True:
+			data=request.get_json()
+			attraction_id=data["orders"]["trip"]["attraction"]["id"]
+			cursor.execute("SELECT * FROM `location` WHERE `id`=%s",[attraction_id])
+			information=cursor.fetchone()
+			if information:
+				attraction_name=data["orders"]["trip"]["attraction"]["name"]
+				attraction_address=data["orders"]["trip"]["attraction"]["address"]
+				image=data["orders"]["trip"]["attraction"]["image"]
+				date=data["orders"]["trip"]["date"]
+				time=data["orders"]["trip"]["time"]
+				price=data["orders"]["price"]
+				name=data["orders"]["contact"]["name"]
+				email=data["orders"]["contact"]["email"]
+				phone=data["orders"]["contact"]["phone"]
+				pay_status=1
+				pay_message="付款失敗"
+				tonow=datetime.datetime.today()
+				cursor.execute("select count(*) from `order`")
+				order_number=cursor.fetchone()
+				order_number=order_number[0]+1
+				number=str(tonow.year)+str(tonow.month)+str(tonow.day)+str(tonow.hour)+str(tonow.minute)+str(tonow.second)+str(user_id)+str(attraction_id)+str(order_number)
+				url='https://sandbox.tappaysdk.com/tpc/payment/pay-by-prime'
+				headers={
+					'Content-Type': 'application/json',
+	 				'x-api-key': partner_key
+				}
+				pay_data={
+					"prime": data["prime"],
+					"partner_key": partner_key,
+					"merchant_id": "DKC_CTBC",
+					"details":"TapPay Test",
+					"amount": price,
+					"cardholder": {
+						"phone_number": phone,
+						"name": name,
+						"email": email,
+					},
+					"remember": True
+				}
+				r=req.post(url,json=pay_data,headers=headers)
+				r_json=r.json()
+				if (r_json["status"]==0):
+					pay_status=0
+					pay_message="付款成功"
+				cursor.execute("INSERT INTO `order` VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(number,user_id,price,attraction_id,attraction_name,attraction_address,image,date,time,name,email,phone,pay_status))
+				connection.commit()
+				response={
+					"data":{
+						"number":number,
+						"payment":{
+							"status":pay_status,
+							"message":pay_message
+						}
+					}
+				}
+				response=make_response(jsonify(response),200)
+				return response
+			else:
+				response={
+					"error":True,
+					"message":"Data doesen't exist"
+				}
+				response=make_response(jsonify(response),400)
+				return response
+		else:
+			response={
+				"error":True,
+				"message":"Not Loging"
+			}
+			response=make_response(jsonify(response),403)
+			return response
+	except:
+		connection.rollback()
+		response={
+			"error":True,
+			"message":"Server error"
+		}
+		response=make_response(jsonify(response),500)
+		return response
+	finally:
+		if connection.is_connected():
+			cursor.close()
+			connection.close()
+			print("connection is closed")
+
+@app.route("/api/order/<orderNumber>", methods=["GET"])
+def api_order(orderNumber):
+	try:
+		connection=connectionpool.get_connection()
+		cursor=connection.cursor()
+		status=session.get("login")
+		user_id=session.get("id")
+		if status==True:
+			cursor.execute("SELECT * FROM `order` WHERE `number`=%s and `user_id`=%s",(orderNumber,user_id))
+			data=cursor.fetchone()
+			if data:
+				response={
+					"data":{
+						"number":data[0],
+						"price":data[2],
+						"trip":{
+							"attraction":{
+								"id":data[3],
+								"name":data[4],
+								"address":data[5],
+								"image":data[6]
+							},
+							"date":data[7],
+							"time":data[8]
+						},
+						"contact":{
+							"name":data[9],
+							"email":data[10],
+							"phone":data[11]
+						},
+						"status":data[12]
+					}
+				}
+				response=make_response(jsonify(response),200)
+				return response
+			else:
+				response={
+					"error":True,
+					"message":"No data"
+				}
+				response=make_response(jsonify(response),400)
+				return response
+		else:
+			response={
+				"error":True,
+				"message":"Not Loging"
+			}
+			response=make_response(jsonify(response),403)
+			return response
+	except:
+		connection.rollback()
+		response={
+			"error":True,
+			"message":"Server error"
+		}
+		response=make_response(jsonify(response),500)
+		return response
+	finally:
+		if connection.is_connected():
+			cursor.close()
+			connection.close()
+			print("connection is closed")
+
 if __name__=="__main__":
     app.run(host='0.0.0.0',port=3000)

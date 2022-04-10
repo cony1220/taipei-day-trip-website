@@ -121,6 +121,11 @@ a{
     font-weight:bold;
     margin-bottom:24px;
 }
+.card_item{
+    display:grid;
+    grid-template-columns:81px 200px;
+    align-items:center;
+}
 .booking_item{
     margin-top:15px;
 }
