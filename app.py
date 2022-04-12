@@ -447,7 +447,7 @@ def api_orders():
 		if status==True:
 			data=request.get_json()
 			attraction_id=data["orders"]["trip"]["attraction"]["id"]
-			cursor.execute("SELECT * FROM `location` WHERE `id`=%s",[attraction_id])
+			cursor.execute("SELECT * FROM `booking` WHERE `user_id`=%s and `attraction_id`=%s",[user_id,attraction_id])
 			information=cursor.fetchone()
 			if information:
 				attraction_name=data["orders"]["trip"]["attraction"]["name"]
@@ -486,10 +486,10 @@ def api_orders():
 				}
 				r=req.post(url,json=pay_data,headers=headers)
 				r_json=r.json()
-				print(r_json)
 				if (r_json["status"]==0):
 					pay_status=0
 					pay_message="付款成功"
+					cursor.execute("DELETE FROM `booking` WHERE `user_id`=%s and `attraction_id`=%s",[user_id,attraction_id])
 				cursor.execute("INSERT INTO `orders` VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(number,user_id,price,attraction_id,attraction_name,attraction_address,image,date,time,name,email,phone,pay_status))
 				connection.commit()
 				response={
