@@ -16,7 +16,7 @@
                         <span id="signin_status">
                             <span onclick="signin_box();">登入</span>/<span onclick="signup_box();">註冊</span>
                         </span>
-                        <span id="signout_status" onclick="signout();">登出系統</span>
+                        <span id="member_status"><a href="/member">會員專區</a></span>
                     </div>
                 </div>
             </header>
@@ -103,7 +103,7 @@
         <script>
             // 登入狀態
             let signin_status=document.getElementById("signin_status");
-            let signout_status=document.getElementById("signout_status");
+            let member_status=document.getElementById("member_status");
             let has_data=document.getElementById("has_data");
             let hasnt_data=document.getElementById("hasnt_data");
             fetch('/api/user',{
@@ -114,7 +114,7 @@
                 if (result["data"]){
                     //登入狀態
                     signin_status.style.display="none";
-                    signout_status.style.display="block";
+                    member_status.style.display="block";
                     // 得到booking資料
                     fetch('api/booking',{
                         method:"GET"

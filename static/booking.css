@@ -169,7 +169,7 @@ a{
     border-radius:5px;
     border:0px;
     padding:10px;
-    padding-left:20px;padding-right:20px;
+    padding-left:18px;padding-right:18px;
     cursor:pointer;
     line-height:16px;
 }
@@ -253,6 +253,10 @@ a{
     cursor:pointer;
 }
 #signout_status{
+    display:none;
+    cursor:pointer;
+}
+#member_status{
     display:none;
     cursor:pointer;
 }

@@ -4,7 +4,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta charset="utf-8" />
         <title>台北一日遊</title>
-        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='thankyou.css')}}" media="all"/>
+        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='history.css')}}" media="all"/>
     </head>
     <body>
         <div style="min-height:100%;position:relative;">
@@ -48,13 +48,7 @@
             <div id="cover"></div>
             <main class="content">
                 <div id="content_box">
-                    <div class="title">行程預定<span id="pay_status"></span></div>
-                    <div class="content_item">訂單編號：<span id="number"></span></div>
-                    <div class="content_item">台北一日遊：<span id="order_name"></span></div>
-                    <div class="content_item">日期：<span id="date"></span></div>
-                    <div class="content_item">時間：<span id="time"></span></div>
-                    <div class="content_item">費用：<span id="pay"></span></div>
-                    <div class="content_item">地點：<span id="address"></span></div>
+                    <div class="welcome">您好，<span id="welcome_name"></span>，歷史訂單如下：</div>
                 </div>
                 <div id="loading" class="loading_icon"></div>
             </main>
@@ -72,38 +66,65 @@
                 return response.json()
             }).then(function(result){
                 if (result["data"]){
-                    // 訂單編號
-                    oreder_number=location.href.split("=")[1];
-                    number=document.getElementById("number");
-                    number.textContent=oreder_number;
-                    //內容
-                    let loading=document.getElementById("loading");
-                    let content=document.getElementById("content");
-                    let content_box=document.getElementById("content_box");
-                    let pay_status=document.getElementById("pay_status");
-                    let order_name=document.getElementById("order_name");
-                    let date=document.getElementById("date");
-                    let time=document.getElementById("time");
-                    let pay=document.getElementById("pay");
-                    let address=document.getElementById("address");
-                    fetch('/api/order/'+oreder_number,{
+                    signin_status.style.display="none";
+                    member_status.style.display="block";
+                    fetch('/api/history',{
                         method:"GET"
                     }).then(function(response){
                         return response.json()
                     }).then(function(data){
+                        let content_box=document.getElementById("content_box");
+                        let welcome_name=document.getElementById("welcome_name");
+                        welcome_name.textContent=result["data"]["name"];
+                        let loading=document.getElementById("loading");
                         if (data["data"]){
-                            signin_status.style.display="none";
-                            member_status.style.display="block";
-                            if (data["data"]["status"]==0){
-                                pay_status.textContent="成功";
-                            }else{
-                                pay_status.textContent="失敗";
+                            for (let i=0;i<data["data"].length;i++){
+                                let content_container=document.createElement("div");
+                                let content_item1=document.createElement("div");
+                                let content_item2=document.createElement("div");
+                                let content_item3=document.createElement("div");
+                                let content_item4=document.createElement("div");
+                                let content_item5=document.createElement("div");
+                                let content_item6=document.createElement("div");
+                                content_container.setAttribute("class","content_container");
+                                content_item1.setAttribute("class","content_item");
+                                content_item2.setAttribute("class","content_item");
+                                content_item3.setAttribute("class","content_item");
+                                content_item4.setAttribute("class","content_item");
+                                content_item5.setAttribute("class","content_item");
+                                content_item6.setAttribute("class","content_item");
+                                content_item1.textContent="訂單編號：";
+                                content_item2.textContent="台北一日遊：";
+                                content_item3.textContent="日期：";
+                                content_item4.textContent="時間：";
+                                content_item5.textContent="費用：";
+                                content_item6.textContent="地點：";
+                                let number=document.createElement("span");
+                                let order_name=document.createElement("span");
+                                let date=document.createElement("span");
+                                let time=document.createElement("span");
+                                let pay=document.createElement("span");
+                                let address=document.createElement("span");
+                                number.textContent=data["data"][i]["number"]
+                                order_name.textContent=data["data"][i]["trip"]["attraction"]["name"];
+                                date.textContent=data["data"][i]["trip"]["date"];
+                                time.textContent=data["data"][i]["trip"]["time"];
+                                pay.textContent=data["data"][i]["price"];
+                                address.textContent=data["data"][i]["trip"]["attraction"]["address"];
+                                content_item1.appendChild(number);
+                                content_item2.appendChild(order_name);
+                                content_item3.appendChild(date);
+                                content_item4.appendChild(time);
+                                content_item5.appendChild(pay);
+                                content_item6.appendChild(address);
+                                content_container.appendChild(content_item1);
+                                content_container.appendChild(content_item2);
+                                content_container.appendChild(content_item3);
+                                content_container.appendChild(content_item4);
+                                content_container.appendChild(content_item5);
+                                content_container.appendChild(content_item6);
+                                content_box.appendChild(content_container);
                             }
-                            order_name.textContent=data["data"]["trip"]["attraction"]["name"];
-                            date.textContent=data["data"]["trip"]["date"];
-                            time.textContent=data["data"]["trip"]["time"];
-                            pay.textContent=data["data"]["price"];
-                            address.textContent=data["data"]["trip"]["attraction"]["address"];
                         }else{
                             content_box.textContent="沒有資料";
                         }

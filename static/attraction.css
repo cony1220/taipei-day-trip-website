@@ -201,7 +201,7 @@ input[type=radio]:checked:before {
 }
 #booking_button{
     grid-column:1/2;grid-row:12/13;
-    width:154px;height:36px;font-size:19px;
+    width:158px;height:36px;font-size:19px;
     background-color:#448899;color:white;border-radius:5px;
     text-align:center;line-height:16px;
     border:0px;
@@ -293,6 +293,10 @@ input[type=radio]:checked:before {
     cursor:pointer;
 }
 #signout_status{
+    display:none;
+    cursor:pointer;
+}
+#member_status{
     display:none;
     cursor:pointer;
 }
