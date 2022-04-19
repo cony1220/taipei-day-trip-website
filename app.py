@@ -61,6 +61,12 @@ def booking():
 @app.route("/thankyou")
 def thankyou():
 	return render_template("thankyou.html")
+@app.route("/history")
+def history():
+	return render_template("history.html")
+@app.route("/member")
+def member():
+	return render_template("member.html")
 
 @app.route("/api/attractions", methods=["GET"])
 def attraction_qurey():
@@ -568,10 +574,9 @@ def api_order(orderNumber):
 				return response
 			else:
 				response={
-					"error":True,
-					"message":"No data"
+					"data":None
 				}
-				response=make_response(jsonify(response),400)
+				response=make_response(jsonify(response),200)
 				return response
 		else:
 			response={
@@ -580,6 +585,69 @@ def api_order(orderNumber):
 			}
 			response=make_response(jsonify(response),403)
 			return response
+	except:
+		connection.rollback()
+		response={
+			"error":True,
+			"message":"Server error"
+		}
+		response=make_response(jsonify(response),500)
+		return response
+	finally:
+		if connection.is_connected():
+			cursor.close()
+			connection.close()
+			print("connection is closed")
+
+@app.route("/api/history", methods=["GET"])
+def api_history():
+	try:
+		connection=connectionpool.get_connection()
+		cursor=connection.cursor()
+		status=session.get("login")
+		user_id=session.get("id")
+		if status==True:
+			cursor.execute("SELECT * FROM `orders` WHERE `user_id`=%s and `status`=0",(user_id,))
+			history_data=cursor.fetchall()
+			if history_data:
+				response={}
+				response["data"]=[]
+				for data in history_data:
+					content={
+						"number":data[0],
+						"price":data[2],
+						"trip":{
+							"attraction":{
+								"id":data[3],
+								"name":data[4],
+								"address":data[5],
+								"image":data[6]
+							},
+							"date":data[7],
+							"time":data[8]
+						},
+						"contact":{
+							"name":data[9],
+							"email":data[10],
+							"phone":data[11]
+						}
+					}
+					response["data"].append(content)
+				response=make_response(jsonify(response),200)
+				return response
+			else:
+				response={
+					"data":None
+				}
+				response=make_response(jsonify(response),200)
+				return response
+		else:
+			response={
+				"error":True,
+				"message":"Not Loging"
+			}
+			response=make_response(jsonify(response),403)
+			return response		
 	except:
 		connection.rollback()
 		response={

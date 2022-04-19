@@ -4,7 +4,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta charset="utf-8" />
         <title>台北一日遊</title>
-        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='thankyou.css')}}" media="all"/>
+        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='member.css')}}" media="all"/>
     </head>
     <body>
         <div style="min-height:100%;position:relative;">
@@ -48,13 +48,12 @@
             <div id="cover"></div>
             <main class="content">
                 <div id="content_box">
-                    <div class="title">行程預定<span id="pay_status"></span></div>
-                    <div class="content_item">訂單編號：<span id="number"></span></div>
-                    <div class="content_item">台北一日遊：<span id="order_name"></span></div>
-                    <div class="content_item">日期：<span id="date"></span></div>
-                    <div class="content_item">時間：<span id="time"></span></div>
-                    <div class="content_item">費用：<span id="pay"></span></div>
-                    <div class="content_item">地點：<span id="address"></span></div>
+                    <div class="title">會員專區</div>
+                    <img class="picture" style="width:150px" src="{{url_for('static', filename='havanese.png')}}"/>    
+                    <div class="content_item">姓名：<span id="name"></span></div>
+                    <div class="content_item">信箱：<span id="email"></span></div>
+                    <div class="content_item"><a href="/history">歷史訂單</a></div>
+                    <div onclick="signout();" class="content_item" id="signout_status">登出</div>
                 </div>
                 <div id="loading" class="loading_icon"></div>
             </main>
@@ -72,44 +71,14 @@
                 return response.json()
             }).then(function(result){
                 if (result["data"]){
-                    // 訂單編號
-                    oreder_number=location.href.split("=")[1];
-                    number=document.getElementById("number");
-                    number.textContent=oreder_number;
-                    //內容
-                    let loading=document.getElementById("loading");
-                    let content=document.getElementById("content");
-                    let content_box=document.getElementById("content_box");
-                    let pay_status=document.getElementById("pay_status");
-                    let order_name=document.getElementById("order_name");
-                    let date=document.getElementById("date");
-                    let time=document.getElementById("time");
-                    let pay=document.getElementById("pay");
-                    let address=document.getElementById("address");
-                    fetch('/api/order/'+oreder_number,{
-                        method:"GET"
-                    }).then(function(response){
-                        return response.json()
-                    }).then(function(data){
-                        if (data["data"]){
-                            signin_status.style.display="none";
-                            member_status.style.display="block";
-                            if (data["data"]["status"]==0){
-                                pay_status.textContent="成功";
-                            }else{
-                                pay_status.textContent="失敗";
-                            }
-                            order_name.textContent=data["data"]["trip"]["attraction"]["name"];
-                            date.textContent=data["data"]["trip"]["date"];
-                            time.textContent=data["data"]["trip"]["time"];
-                            pay.textContent=data["data"]["price"];
-                            address.textContent=data["data"]["trip"]["attraction"]["address"];
-                        }else{
-                            content_box.textContent="沒有資料";
-                        }
-                        loading.style.display="none";
-                        content_box.style.display="block";
-                    });
+                    signin_status.style.display="none";
+                    member_status.style.display="block";
+                    let name=document.getElementById("name");
+                    let email=document.getElementById("email");
+                    name.textContent=result["data"]["name"];
+                    email.textContent=result["data"]["email"];
+                    loading.style.display="none";
+                    content_box.style.display="block";
                 }else{
                     window.location.replace('/');
                 }           

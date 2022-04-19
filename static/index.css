@@ -207,6 +207,9 @@ a{
     cursor:pointer;
 }
 #signout_status{
+    cursor:pointer;
+}
+#member_status{
     display:none;
     cursor:pointer;
 }
